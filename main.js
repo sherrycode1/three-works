@@ -13,8 +13,8 @@ const gui = new dat.GUI();
 const scene = new THREE.Scene();
 
 // axes
-const axes = new THREE.AxesHelper(12, 12, 12);
-scene.add(axes);
+// const axes = new THREE.AxesHelper(12, 12, 12);
+// scene.add(axes);
 
 // light
 // AmbientLight
@@ -23,19 +23,21 @@ aLight.intensity = 0.1;
 scene.add(aLight);
 // DirectionalLight
 const light = new THREE.DirectionalLight(0xffffff);
-light.position.set(5, 5, 5);
+light.position.set(7, 7, 7);
 light.castShadow = true;
 scene.add(light);
 
 const spotLight = new THREE.SpotLight(0xffffff);
 spotLight.position.set(5, 3, 3);
+
 // spotLight.position.x = - 0.5 * Math.PI
+
 scene.add(spotLight);
 
-const lightHelper = new THREE.DirectionalLightHelper(light);
-scene.add(lightHelper);
-const lightHelper1 = new THREE.SpotLightHelper(spotLight);
-scene.add(lightHelper1);
+// const lightHelper = new THREE.DirectionalLightHelper(light);
+// scene.add(lightHelper);
+// const lightHelper1 = new THREE.SpotLightHelper(spotLight);
+// scene.add(lightHelper1);
 
 // const hLight = new THREE.HemisphereLight(0xff0000,0x0000ff)
 // scene.add(hLight)
@@ -66,10 +68,32 @@ cube1.castShadow = true;
 cube1.position.set(-3, 0.5, 2);
 const cube2 = cube1.clone();
 cube1.position.set(-3, 0.5, 4);
-scene.add(cube1);
-scene.add(cube2);
+scene.add(cube1, cube2);
 
 const cube3g = new THREE.BoxGeometry(2, 2, 1);
+
+// buildings
+const buildingGroup1 = new THREE.Group();
+const buildingG = new THREE.BoxGeometry(2, 7, 2);
+const buildingG2 = new THREE.BoxGeometry(2, 10, 2);
+const buildingM = new THREE.MeshPhongMaterial({ color: 0x6f687a });
+const buildingM2 = new THREE.MeshPhongMaterial({ color: 0xc3a090 });
+const building1 = new THREE.Mesh(buildingG, buildingM);
+const building2 = new THREE.Mesh(buildingG2, buildingM2);
+building1.position.set(-6, 4, 0);
+building2.position.set(-6, 5, 4);
+buildingGroup1.add(building1, building2);
+const buildingGroup2 = buildingGroup1.clone();
+const buildingGroup3 = buildingGroup1.clone()
+
+const buildingGroup5 = buildingGroup1.clone()
+buildingGroup2.position.set(12, 0, 5);
+buildingGroup3.position.set(0, 0, 8);
+
+buildingGroup5.position.set( 3, 0, -0.1)
+
+buildingGroup5.rotation.y = - 0.5 * Math.PI
+scene.add(buildingGroup1, buildingGroup2, buildingGroup3, buildingGroup5);
 
 // video texture
 
@@ -79,7 +103,6 @@ texturevideo.needsUpdate;
 texturevideo.minFilter = THREE.LinearFilter;
 texturevideo.magFilter = THREE.LinearFilter;
 texturevideo.format = THREE.RGBFormat;
-// texturevideo.crossOrigin = "anonymous";
 
 const cube3 = new THREE.Mesh(
   cube3g,
@@ -99,6 +122,7 @@ const torus = new THREE.Mesh(torusG, smatrial);
 torus.position.set(5, 3, 1);
 torus.castShadow = true;
 scene.add(torus);
+
 // car
 const car = new THREE.Group();
 
@@ -169,7 +193,7 @@ body.add(cube, roof);
 
 // control color
 const groundControls = {
-  color: 0x6da76d,
+  color: 0x94bb94,
 };
 // add to scene
 
@@ -178,22 +202,16 @@ car.add(frontWheels, backwheels, body);
 scene.add(car);
 
 // ground
+const floor = loader.load("./imgs/floor.jpg");
 
 const planeG = new THREE.PlaneGeometry(40, 40);
-const planeM = new THREE.MeshLambertMaterial({ color: groundControls.color });
+const planeM = new THREE.MeshLambertMaterial({ map: floor });
 const plane = new THREE.Mesh(planeG, planeM);
 scene.add(plane);
 plane.rotation.x = -0.5 * Math.PI;
 car.rotation.x = 0.5 * Math.PI;
 plane.receiveShadow = true;
 car.position.y = 0.6;
-
-gui
-  .addColor(groundControls, "color")
-  .onChange(() => {
-    planeM.color.set(groundControls.color);
-  })
-  .name("groundcolor");
 
 // roadGroup
 const roadGroup = new THREE.Group();
@@ -231,7 +249,7 @@ scene.add(roadGroup);
 // camera
 
 const camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 100);
-camera.position.set(5, 5, 5);
+camera.position.set(3.56, 5, 5);
 camera.lookAt(0, 0, 0);
 const folder1 = gui.addFolder("camera");
 folder1.add(camera.position, "x", -5, 5, 0.01).name("camera-x");
@@ -246,7 +264,13 @@ folder2.add(car.position, "z", -5, 5, 0.01).name("z");
 // Renderer
 
 const renderer = new THREE.WebGLRenderer();
-renderer.setClearColor(0x85e4e8);
+renderer.setClearColor(groundControls.color);
+gui
+  .addColor(groundControls, "color")
+  .onChange(() => {
+    renderer.setClearColor(groundControls.color);
+  })
+  .name("groundcolor");
 renderer.shadowMap.enabled = true;
 document.body.append(renderer.domElement);
 document.body.append(stat.dom);
@@ -286,10 +310,9 @@ audioLoader.load("./audio/bg.ogg", function (buffer) {
 
 function tick() {
   const time = clock.getElapsedTime();
-
   frontWheels.rotation.x = time * controls.speed;
   backwheels.rotation.x = time * controls.speed;
-  car.position.z = ((time % 2) - 1) * controls.speed;
+  car.position.z = ((time % 2) - 1) * controls.speed + 5;
   torus.position.x = Math.sin(time) + 4;
   torus.position.y = Math.sin(time) + 4;
   spere.position.x = 4 + Math.sin(time);
@@ -299,7 +322,7 @@ function tick() {
   stat.update();
   orbitControls.update();
 }
-
+console.log(tick);
 // window resize
 
 window.addEventListener("resize", () => {
